@@ -42,28 +42,74 @@ explicitly asks.
    ```
    If nothing is staged, fall back to `git diff` / `git status` and mention that
    nothing is staged yet.
-2. Pick the `type`, optional `scope`, and an imperative subject from the diff.
-3. Emit the single-line version, then the multi-line version (templates below).
+2. Pick the `type`, optional `scope`, and identify the **dominant action** of the
+   change as a whole — the single verb that best names what happened overall
+   (e.g. `merge`, `combine`, `unify`, `move`, `rename`, `split`, `drop`, `rewrite`).
+3. Write the **multi-line** version first (subject + concise bullets). Then distill
+   the **single-line** as a one-line, high-level summary of that **whole** message —
+   built around the dominant action, **not** a copy of the multi-line's subject/first
+   line. The single-line has **no** width limit (see "Single-line vs multi-line" below).
 
 ## Format
 
 ```
-<type>(<optional scope>): <subject>
+<type>(<scope1,scope2,...>): <subject>
 
-<body>
+- <key change 1>
+- <key change 2>
+- ...
 
 <footer>
 ```
 
 Rules:
 
-- **Subject**: imperative mood, lowercase, no trailing period, ≤ 50 chars (hard ≤ 72).
-- **Body** (multi-line only): wrap at ~72 cols; explain the *why*, not the *what*.
+- **Subject**: imperative mood, lowercase, no trailing period. The ≤ 50 char
+  (hard ≤ 72) length cap applies to the **multi-line subject**; the **single-line
+  is exempt** from any width limit (see "Single-line vs multi-line").
+- **Scope** (optional): the area(s) touched. When the diff spans multiple areas,
+  use **comma-separated scopes** — `refactor(cli,libs): …`. Omit the scope rather
+  than invent a vague one.
+- **Body** (multi-line only): a **short bulleted list** of the key changes — one
+  `- ` markdown item each, terse and imperative. Each bullet **starts directly with
+  a lowercase verb phrase** (`update docs`, `fix bug`), no trailing period. Do
+  **not** prefix a bullet with a single-letter label or initial. Capture *what
+  changed at a high level*, **not** a file-by-file rundown: do **not** list
+  filenames, include code, or over-explain. Aim for ~2–5 bullets; drop the body
+  entirely if the subject already says it all.
+- **Ignore incidental noise**: do not create a subject or bullet for churn that
+  isn't a real change — header/metadata bumps (`LastChange:`/`Updated:` timestamps),
+  auto-formatting reflow, or generated-file diffs. Summarize the actual change only.
 - **Footer** (when relevant): `BREAKING CHANGE: <desc>`, and issue refs like `Closes #123`.
   Only add an issue ref when the user provides a number (e.g. `/git-commit closes #142`)
   or it's clearly in the branch name (e.g. `feature/142-...`, `PROJ-142-...`).
   **Never invent an issue number** — omit the footer if none is known.
 - A breaking change is marked either with `!` after the type/scope (`feat(api)!:`) or a `BREAKING CHANGE:` footer.
+
+### Single-line vs multi-line
+
+The two forms are **not** the same string. The single-line is a **high-level
+summary of the *entire* multi-line message** (its subject **and** its bullets),
+condensed into one line — **not** a variant of the multi-line's first line/subject.
+
+- **Single-line** — distill the whole multi-line into one line (the overall "what
+  happened"), led by the dominant action verb from step 2. **No width limit**: it
+  does *not* obey the ≤ 50/≤ 72 subject cap and is never wrapped — make it as long
+  as it needs to be to capture the essence, but keep it a single line and a valid
+  Conventional Commit. Prefer high-level "what happened" over enumerating specifics.
+- **Multi-line subject** — its own subject line; obeys the ≤ 50/≤ 72 length cap and
+  imperative mood. Do **not** reuse it verbatim as the single-line.
+- Both must be valid Conventional Commits. If the single-line is just the multi-line
+  subject copied, re-derive it as a summary of the whole message instead.
+
+<good-example>
+Single-line: `refactor(install): merge cli + skill installers into one script`
+Multi-line subject: `refactor(install)!: unify installers into root install.sh with modes`
+</good-example>
+
+<bad-example>
+Single-line is just the multi-line's first line copied verbatim (no distillation).
+</bad-example>
 
 ### Types and semantic-release impact
 
@@ -88,9 +134,37 @@ Only `feat fix refactor chore docs perf ci` appear as CHANGELOG sections; `style
 
 > The `feat`→minor and breaking→major rows assume the two overrides in `~/.releaserc.js` (`{ type: 'feat', release: 'patch' }` and `{ breaking: true, release: 'minor' }`) stay **commented out**. If they're enabled, `feat` becomes patch and breaking becomes minor — update this table to match.
 
+### `docs` vs `feat`/`fix`/`refactor`: classify by the file's role, not its extension
+
+Do **not** reason "it's markdown / prose, therefore `docs`". `docs` is only for
+**human-facing, ancillary documentation** — `README`, guides, `docs/…`, usage /
+install notes, code comments, CHANGELOG prose: material a program never executes.
+
+If the changed file is itself the **product or the executable / behavioral source**
+— e.g. a `SKILL.md` an agent runs, a Cursor/agent rule, a prompt template, or a
+config / manifest that drives behavior — classify it by its **effect**, exactly as
+you would for code, even though it is markdown:
+
+- `feat` — adds a new capability / instruction.
+- `fix` — corrects wrong or broken behavior.
+- `refactor` — restructures with **no** behavior change (e.g. splitting a big file,
+  moving sections into includes, renaming for clarity).
+
+<good-example>
+Splitting a large `SKILL.md` into a lean core + `references/` with no behavior
+change → `refactor(skill): split SKILL.md into a lean core + references/`.
+Editing `README.md` to describe that same skill → `docs: …`.
+</good-example>
+
+<bad-example>
+Classifying a `SKILL.md`/prompt/rule restructure as `docs` just because the file
+has a `.md` extension.
+</bad-example>
+
 ## Output template
 
-Respond with exactly these two blocks:
+Respond with exactly these two blocks. The single-line is a distilled summary,
+**not** a copy of the multi-line subject (they may differ):
 
 **Single-line**
 ```
@@ -101,7 +175,8 @@ Respond with exactly these two blocks:
 ```
 <type>(<scope>): <subject>
 
-<body explaining why>
+- <key change>
+- <key change>
 
 <optional footer: BREAKING CHANGE / Closes #NN>
 ```
@@ -110,17 +185,21 @@ Respond with exactly these two blocks:
 
 Input: added a JWT login endpoint and token-validation middleware.
 
+Note how the single-line distills to the essence (`add JWT auth`) while the
+multi-line subject carries the specifics — they are intentionally different.
+
 **Single-line**
 ```
-feat(auth): add JWT login endpoint and token validation
+feat(auth): add JWT authentication
 ```
 
 **Multi-line**
 ```
-feat(auth): add JWT login endpoint and token validation
+feat(auth): add JWT login endpoint and token-validation middleware
 
-Introduce a /login route that issues signed JWTs and middleware that
-validates them on protected routes, replacing the ad-hoc session check.
+- issue signed JWTs from a new /login route
+- validate tokens on protected routes via middleware
+- replace the ad-hoc session check
 
 Closes #142
 ```
