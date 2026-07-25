@@ -1,15 +1,15 @@
 ---
-name: git-commit
+name: git-message
 description: >-
   Generate a git commit message that follows the Conventional Commits /
   semantic-release format, providing both a single-line and a multi-line
   version. Works on the working tree or on an existing commit/tag/ref. Use
-  when the user runs /git-commit, /git-commit <ref>, or asks for a commit
+  when the user runs /git-message, /git-message <ref>, or asks for a commit
   message for staged, unstaged, or already-committed changes.
 disable-model-invocation: true
 ---
 
-# git-commit
+# git-message
 
 Produce a commit message in **Conventional Commits / semantic-release** format.
 Always output **two** forms: a single-line summary and a full multi-line
@@ -18,8 +18,8 @@ explicitly asks.
 
 ## Input
 
-- `/git-commit` — summarize the **working tree** (staged, else unstaged).
-- `/git-commit <ref>` — summarize the changes introduced by an existing
+- `/git-message` — summarize the **working tree** (staged, else unstaged).
+- `/git-message <ref>` — summarize the changes introduced by an existing
   commit/tag/reference, e.g. `HEAD^^`, a short hash, or a tag name.
 
 ## Steps
@@ -81,7 +81,7 @@ Rules:
   isn't a real change — header/metadata bumps (`LastChange:`/`Updated:` timestamps),
   auto-formatting reflow, or generated-file diffs. Summarize the actual change only.
 - **Footer** (when relevant): `BREAKING CHANGE: <desc>`, and issue refs like `Closes #123`.
-  Only add an issue ref when the user provides a number (e.g. `/git-commit closes #142`)
+  Only add an issue ref when the user provides a number (e.g. `/git-message closes #142`)
   or it's clearly in the branch name (e.g. `feature/142-...`, `PROJ-142-...`).
   **Never invent an issue number** — omit the footer if none is known.
 - A breaking change is marked either with `!` after the type/scope (`feat(api)!:`) or a `BREAKING CHANGE:` footer.
