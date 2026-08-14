@@ -1,0 +1,7 @@
+- [Bartender Live mode mouse warp](bartender-live-mode-mouse-warp.md) — Bartender 6 Live layout warps cursor & breaks Chrome hover; fix = On-Demand mode
+- [coc-pyright completion resolve regression](coc-pyright-completion-resolve-regression.md) — since commit `6c1cf016`, pyright completion items lose documentation/detail; rollback to `2abe7008`
+- [Corp SSH→GitHub RST instability (EN)](corp-ssh-github-rst-instability.en.md) — office network forges RST on GitHub SSH port 22; use HTTPS
+- [公司网络 SSH→GitHub 被 RST 掐断 (ZH)](corp-ssh-github-rst-instability.zh.md) — office 网络对 GitHub SSH(22)伪造 RST;改用 HTTPS
+- [git wildmatch cheatsheet (EN)](git-wildmatch-cheatsheet.en.md) — git config glob = wildmatch (WM_PATHNAME), not POSIX fnmatch; token→regex, `**` rules, test matrix
+- [git wildmatch 速查 (ZH)](git-wildmatch-cheatsheet.zh.md) — git config glob = wildmatch(WM_PATHNAME),非 fnmatch;token→正则、`**` 规则、实测矩阵
+- [DevOps Jenkins/Groovy dev env](devops-jenkins-development.md) — nvim+coc javadoc for groovy/Jenkinsfile/plugins; ctags shared-libs, groovy-libs.sh, jenkins-libs.sh, gdoc index; setup + troubleshooting runbook

@@ -12,15 +12,19 @@ disable-model-invocation: true
 # git-message
 
 Produce a commit message in **Conventional Commits / semantic-release** format.
-Always output **two** forms: a single-line summary and a full multi-line
-message. Only write the message — do **not** run `git commit` unless the user
-explicitly asks.
+Always output **two** forms: a single-line summary and a full multi-line message. Only write the message — do **not** run `git commit` unless the user explicitly asks.
+
+**CRITICAL RULE**:
+
+If not explicitly asked to commit, !!NEVER!! run git commit for any message. Provide the message if necessary, but unless explicitly instructed, you must absolutely not run git commit!
+如果没有明确的让你提交, !!切勿!! git commit 任何 message. 如果有必要提供就行, 除非我显式的让你提交, 否则一律不得 git commit!
 
 ## Input
 
 - `/git-message` — summarize the **working tree** (staged, else unstaged).
-- `/git-message <ref>` — summarize the changes introduced by an existing
-  commit/tag/reference, e.g. `HEAD^^`, a short hash, or a tag name.
+- `/git-message <ref>` — summarize the changes introduced by an existing commit/tag/reference, e.g. `HEAD^^`, a short hash, or a tag name.
+- `/git-message <path>` — summarize the changes to a specific file or directory in the working tree.
+- `/git-message <path> <ref>` — summarize the changes to a specific file or directory introduced by an existing commit/tag/reference.
 
 ## Steps
 
