@@ -1,7 +1,7 @@
 ---
 name: corp-ssh-github-rst-instability-zh
 description: "公司/office 网络下,到 GitHub 的 SSH(22 端口)被网络边缘伪造 RST 间歇性掐断;应改用 HTTPS。机器级、与项目无关。"
-metadata: 
+metadata:
   node_type: memory
   type: reference
   originSessionId: c5d533da-3e55-46c1-8a01-e745585d0e11
@@ -114,7 +114,7 @@ scutil --proxy ; env | grep -i proxy ; git config --get-regexp proxy
 说明:
 
 - `scutil --proxy` 为空、无 `*_proxy` 环境变量、无 `git http.proxy` ⇒ 出网管控走的是**端侧 `NEFilterDataProvider` / 透明代理网络扩展**,不是传统 HTTP 代理(抓包里 HTTPS 是直连 GitHub 的)。
-- `~/.ssh/config.d/*` 里有**注释掉的** `ProxyCommand` —— 即"SSH 经 HTTP 代理 CONNECT 隧道"的合规写法:`corkscrew ipamunix.marvell.com 8080 %h %p`、`nc -X connect -x ipamunix.marvell.com:8080 %h %p`、`127.0.0.1:1087`。(代理 `ipamunix.marvell.com:8080` 据用户说仅 lab 用;要在公司用 GitHub SSH,启用其中一条即可把 SSH 裹进可审计代理。)
+- `~/.ssh/config.d/*` 里有**注释掉的** `ProxyCommand` —— 即"SSH 经 HTTP 代理 CONNECT 隧道"的合规写法:`corkscrew ipamunix.domain.com 8080 %h %p`、`nc -X connect -x ipamunix.domain.com:8080 %h %p`、`127.0.0.1:1087`。(代理 `ipamunix.domain.com:8080` 据用户说仅 lab 用;要在公司用 GitHub SSH,启用其中一条即可把 SSH 裹进可审计代理。)
 - **Cisco Secure Client**(`/opt/cisco/secureclient/bin/csc_iseposture --fullposture`;面板里 "Cisco Secure…" = Content Filter **Enabled**):做端点 **posture / 可信网络检测** —— 判断当前在**公司网络(office Wi-Fi)**还是**非公司网络(家里 Wi-Fi / WFH)**,并**按环境套用不同策略**。这与本次观察到的"位置相关性"吻合:GitHub SSH:22 在公司 Wi-Fi 被掐、在家正常,即更严的出网策略只在公司网络生效。它的角色是位置/合规判定 + 策略门控;RST 本身是在网络边缘(~2 跳)注入的。
 - **与 RST 注入的关系(严谨表述):** 以上是本机上存在的端点安全/VPN/审计工具,属**候选**执法者。但包证据(RST TTL **62** ≈ 2 跳,vs GitHub 真包 **49~55** ≈ ~14 跳)指向**公司网络边缘(~2 跳)**的设备 —— 更像**网络设备**,而非 0 跳的本机过滤器。确切执法者本机无法指认,需网络/安全团队确认。
 
@@ -143,5 +143,5 @@ scutil --proxy ; env | grep -i proxy ; git config --get-regexp proxy
 ## 修复 / 建议
 
 - **公开仓库(如 vim-plug 插件)**:走 HTTPS。remote 存成 `https://git::@github.com/OWNER/REPO.git` —— `git::@`(userinfo)使 URL **不**匹配 `insteadOf https://github.com/`,即使 `ssh-set` 开着也保持 HTTPS(实测:匿名走 443 到 github 成功)。`vim-plug` 默认 `g:plug_url_format` 就是这个形式。
-- **自己的 / 内网仓库**(`ghe-marslo`、gerrit `vgitcentral.marvell.com`、`sj1git1.cavium.com` 等):保留 SSH —— 那些流量在**公司内网内部**,不经过 GitHub 出网的 RST 注入。
+- **自己的 / 内网仓库**(`ghe-marslo`、gerrit `vgitcentral.domain.com`、`sj1git1.cavium.com` 等):保留 SSH —— 那些流量在**公司内网内部**,不经过 GitHub 出网的 RST 注入。
 - 总原则:**传输跟着可靠性走** —— 外部 GitHub 走 HTTPS:443,内网主机走 SSH。

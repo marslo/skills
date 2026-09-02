@@ -1,7 +1,7 @@
 ---
 name: corp-ssh-github-rst-instability
 description: "On the corporate/office network, GitHub SSH (port 22) is intermittently killed by a forged-RST injection near the network edge; use HTTPS. Machine-wide, project-agnostic."
-metadata: 
+metadata:
   node_type: memory
   type: reference
   originSessionId: c5d533da-3e55-46c1-8a01-e745585d0e11
@@ -114,7 +114,7 @@ System Settings → Network → **VPN & Filters** (overall status = **Active**):
 Notes:
 
 - `scutil --proxy` empty, no `*_proxy` env, no `git http.proxy` ⇒ egress control is via **on-device `NEFilterDataProvider` / transparent-proxy network extensions**, not a classic HTTP proxy (HTTPS to GitHub went direct in traces).
-- `~/.ssh/config.d/*` contains **commented** `ProxyCommand` lines — the sanctioned "SSH over HTTP-proxy CONNECT" tunnels: `corkscrew ipamunix.marvell.com 8080 %h %p`, `nc -X connect -x ipamunix.marvell.com:8080 %h %p`, `127.0.0.1:1087`. (Proxy `ipamunix.marvell.com:8080` is lab-only per user; enabling one of these is the approved way to run GitHub SSH through an auditable proxy.)
+- `~/.ssh/config.d/*` contains **commented** `ProxyCommand` lines — the sanctioned "SSH over HTTP-proxy CONNECT" tunnels: `corkscrew ipamunix.domain.com 8080 %h %p`, `nc -X connect -x ipamunix.domain.com:8080 %h %p`, `127.0.0.1:1087`. (Proxy `ipamunix.domain.com:8080` is lab-only per user; enabling one of these is the approved way to run GitHub SSH through an auditable proxy.)
 - **Cisco Secure Client** (`/opt/cisco/secureclient/bin/csc_iseposture --fullposture`; "Cisco Secure…" = Content Filter **Enabled**): does endpoint **posture / trusted-network detection** — it identifies whether the host is on the **corporate network (office Wi-Fi)** vs **off-corp (home Wi-Fi / WFH)** and applies **different policies per environment**. This matches the location-dependence observed here (GitHub SSH:22 killed on corp Wi-Fi, fine at home): the stricter egress policy is active only on the corporate network. Its role is location/posture gating; the RST itself is injected at the network edge (~2 hops).
 - **Relationship to the RST injection (kept rigorous):** the above are the endpoint security/VPN/audit tools present on the host and are *candidate* enforcers. However the packet evidence (RST TTL **62** ≈ 2 hops vs GitHub's real **49–55** ≈ ~14 hops) points to a device at the **corporate network edge (~2 hops)** — i.e. more likely a **network appliance** than a 0-hop on-host filter. The exact enforcer is not pinned from the host; confirming it needs the network/security team.
 
@@ -143,5 +143,5 @@ Both toggle which include (`credential.ssh` vs `credential.https`) is active. Co
 ## Fix / recommendation
 
 - **Public repos (e.g. vim-plug plugins)**: use HTTPS. Store remotes as `https://git::@github.com/OWNER/REPO.git` — the `git::@` userinfo makes the URL **not** match `insteadOf https://github.com/`, so it stays HTTPS even with `ssh-set` active (verified: reaches github over 443 anonymously). `vim-plug` default `g:plug_url_format` already produces this form.
-- **Own / internal repos** (`ghe-marslo`, `vgitcentral.marvell.com` gerrit, `sj1git1.cavium.com`, etc.): keep SSH — that traffic stays **inside** the corporate network and is not subject to the GitHub-egress RST injection.
+- **Own / internal repos** (`ghe-marslo`, `vgitcentral.domain.com` gerrit, `sj1git1.cavium.com`, etc.): keep SSH — that traffic stays **inside** the corporate network and is not subject to the GitHub-egress RST injection.
 - Net rule: **transport follows reliability** — external GitHub over HTTPS:443, internal hosts over SSH.
